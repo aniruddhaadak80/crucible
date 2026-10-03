@@ -21,12 +21,16 @@ export const GITHUB_URL = `https://github.com/${GITHUB_OWNER}/${REPO_SLUG}`;
 export const GITHUB_API_TREE = `${GITHUB_URL}/tree/main`;
 
 /**
- * Production host. Set NEXT_PUBLIC_SITE_URL on the deployment; the fallback is
- * only used for local development and for the first deploy before the real
- * alias is known.
+ * Production host. Set NEXT_PUBLIC_SITE_URL on the deployment.
+ *
+ * The fallback is the real Vercel production alias, not `crucible.vercel.app`:
+ * that hostname is already taken by an unrelated project and 307-redirects to
+ * someone else's site, so defaulting to it would have pointed every canonical
+ * URL, export and agent manifest at a stranger's product.
  */
 export const LIVE_URL = trimSlash(
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://crucible.vercel.app",
+  process.env.NEXT_PUBLIC_SITE_URL ??
+    "https://crucible-cwhs1gr1j-aniruddha-adaks-projects.vercel.app",
 );
 
 export const SITE = {

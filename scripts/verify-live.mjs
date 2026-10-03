@@ -261,7 +261,12 @@ async function main() {
   const integrity = await get(`/api/tasks/${taskId}/integrity`);
   ok("integrity is 200", integrity.status === 200, `got ${integrity.status}`);
   ok("the chain replays clean", integrity.json?.integrity?.ok === true, integrity.json?.integrity?.brokenReason ?? "");
-  ok("links were actually checked", (integrity.json?.integrity?.checked ?? 0) >= 4, `${integrity.json?.integrity?.checked}`);
+  // create, patch, grade => three links before any deletion.
+  ok(
+    "links were actually checked",
+    (integrity.json?.integrity?.checked ?? 0) >= 3,
+    `${integrity.json?.integrity?.checked}`,
+  );
   ok("a genesis value is reported", typeof integrity.json?.integrity?.genesis === "string");
   ok("a chain head is reported", typeof integrity.json?.integrity?.head === "string");
 

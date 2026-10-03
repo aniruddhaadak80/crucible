@@ -52,3 +52,5 @@ dev.err.log
 # agent + editor scratch
 .screenshots/
 /tmp-verify/
+.vercel
+.env*
