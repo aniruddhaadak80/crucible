@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: typecheck, lint, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm run test
+
+      - name: Store checks
+        run: npm run verify:db
+
+      - name: Bundle parity (TypeScript engine vs exported Python grader)
+        run: npm run verify:bundle
+
+      - name: Production build
+        run: npm run build
+        env:
+          # The build must not require any secret. This is asserted, not assumed:
+          # the embedded adapter is fine for a build, and no live route is fetched.
+          NEXT_TELEMETRY_DISABLED: "1"
+
+      - name: Upload build artefacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: next-build-log
+          path: |
+            .next/**/*.log
+          retention-days: 3
+          if-no-files-found: ignore
+
+  journey:
+    name: http journey against a real database
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: verify
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: crucible
+          POSTGRES_PASSWORD: crucible
+          POSTGRES_DB: crucible
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # A real Postgres, so the journey exercises the hosted code path and the
+      # production guard is satisfied without the escape hatch.
+      DATABASE_URL: postgresql://crucible:crucible@localhost:5432/crucible
+      NEXT_TELEMETRY_DISABLED: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Full HTTP journey
+        run: npm run journey

@@ -1,0 +1,30 @@
+---
+name: Feature or improvement
+about: A change to the product, engine or agent surface
+title: "[feat] "
+labels: enhancement
+---
+
+## The problem
+
+<!-- Start from a job someone is trying to do, not from an implementation. The
+     best changes here came from a real failure someone kept seeing. -->
+
+## What you would be able to do afterwards
+
+<!-- If the answer is "see a number", say what a reader could do with that number
+     that they cannot do today. -->
+
+## How you would tell it worked
+
+<!-- The evidence this project would use to consider it done: a test, a script,
+     an endpoint response. -->
+
+## Scope check
+
+- [ ] Every visible control this adds calls real application logic
+- [ ] Loading, empty, success and failure states are all truthful
+- [ ] No new third-party API key is required to use the core product
+- [ ] If it touches grading, the audit chain or the exported Python grader, the
+      parity and known-vector tests are updated
+- [ ] If it adds a route, `src/lib/site.ts` is updated (a test enforces this)

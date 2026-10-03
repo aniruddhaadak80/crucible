@@ -1,0 +1,716 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ *
+ * Crucible design system
+ *
+ * The identity is a foundry floor. A benchmark task is treated as metal:
+ * you charge it, shape it, tap it, and then it either sets or it quenches.
+ * The one idea the whole interface serves is *heat*, and heat here is not
+ * decoration -- it is the computed share of a task's grade that depends on a
+ * language model instead of an exact assertion. A fully deterministic task
+ * sits cold; a judge-bound task glows.
+ *
+ * There is no top navigation and no card grid. The page is one vertical pour
+ * column with a rotated-label rail down its left edge.
+ * ------------------------------------------------------------------ */
+
+@theme {
+  --color-ground: #0a0908;
+  --color-iron-950: #100e0d;
+  --color-iron-900: #171514;
+  --color-iron-800: #201d1b;
+  --color-iron-700: #2b2724;
+  --color-iron-600: #3a3430;
+  --color-iron-500: #514842;
+  --color-iron-400: #6f645b;
+  --color-ash: #9c9089;
+  --color-smoke: #6a605a;
+  --color-bone: #f4f1ea;
+  --color-bone-dim: #d6cfc4;
+
+  /* Live / verified. Lime is used for exactly one meaning: confirmed current. */
+  --color-verified: #a8e05f;
+  /* Fault / broken link. Used only when a replay fails. */
+  --color-fault: #ff5c72;
+
+  /* The temperature ramp, cold to white heat. */
+  --color-t0: #5b6cff;
+  --color-t1: #c0341a;
+  --color-t2: #ef6a12;
+  --color-t3: #f7c02b;
+  --color-t4: #fff4dc;
+
+  --font-display: var(--font-big-shoulders), "Arial Narrow", sans-serif;
+  --font-data: var(--font-martian-mono), ui-monospace, monospace;
+  --font-body: var(--font-instrument-sans), system-ui, sans-serif;
+
+  --text-hero: clamp(3.2rem, 11vw, 9rem);
+}
+
+:root {
+  /* Heat is overridden per surface by the engine's determinism factor. */
+  --heat: 0.3;
+  --accent: color-mix(in oklab, var(--color-t0), var(--color-t4) calc(var(--heat) * 100%));
+  --accent-dim: color-mix(in oklab, var(--accent), var(--color-ground) 55%);
+  --rule: color-mix(in oklab, var(--accent), transparent 72%);
+
+  color-scheme: dark;
+}
+
+html {
+  background: var(--color-ground);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--color-bone);
+  background: var(--color-ground);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * The ground is a single directional cooling wash from the top of the column,
+ * not an ambient blob. Its hue is the computed heat, so two pages showing
+ * different verdicts do not look alike, and neither is lying about why.
+ */
+.forge-ground {
+  position: relative;
+  min-height: 100dvh;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--accent), var(--color-ground) 88%) 0%,
+      var(--color-ground) 46%
+    ),
+    var(--color-ground);
+  transition: background 420ms linear;
+}
+
+/* Fine machining grain. Reads as brushed metal, never as noise. */
+.forge-ground::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: repeating-linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--color-bone), transparent 97%) 0 1px,
+    transparent 1px 4px
+  );
+  z-index: 0;
+}
+
+.forge-ground > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ------------------------------------------------------------------ *
+ * Shell: rotated rail + pour column
+ * ------------------------------------------------------------------ */
+
+.shell {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  min-height: 100dvh;
+}
+
+.rail {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100dvh;
+  border-right: 1px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 20px 0;
+  background: color-mix(in oklab, var(--color-iron-950), transparent 10%);
+}
+
+.rail-mark {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  font-size: 13px;
+  text-transform: uppercase;
+  color: var(--color-ash);
+  text-decoration: none;
+  padding: 14px 6px;
+  border-radius: 2px;
+  position: relative;
+  transition: color 140ms ease, background-color 140ms ease;
+}
+
+.rail-mark:hover {
+  color: var(--color-bone);
+  background: var(--color-iron-800);
+}
+
+.rail-mark[aria-current="page"] {
+  color: var(--color-ground);
+  background: var(--accent);
+}
+
+.rail-mark:focus-visible {
+  outline: 2px solid var(--color-verified);
+  outline-offset: 2px;
+}
+
+.column {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The pour column: one continuous vertical channel. */
+.pour {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 4vw, 48px);
+}
+
+/* A stage of the pour. Bands, not cards. */
+.stage {
+  border-top: 1px solid var(--rule);
+  padding: clamp(28px, 5vw, 56px) 0;
+}
+
+.stage:first-of-type {
+  border-top: 0;
+}
+
+.stage-label {
+  font-family: var(--font-data);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-ash);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.stage-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  /* The rule thickens with heat, so the page's structure carries the value. */
+  background: linear-gradient(
+    90deg,
+    var(--accent),
+    color-mix(in oklab, var(--accent), transparent 100%) 85%
+  );
+  opacity: calc(0.35 + var(--heat) * 0.65);
+}
+
+/* ------------------------------------------------------------------ *
+ * Type
+ * ------------------------------------------------------------------ */
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 0.86;
+  letter-spacing: -0.005em;
+  text-transform: uppercase;
+}
+
+.data {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.hero {
+  font-size: var(--text-hero);
+  letter-spacing: -0.02em;
+}
+
+.lede {
+  font-size: clamp(1.05rem, 1.9vw, 1.32rem);
+  line-height: 1.5;
+  color: var(--color-bone-dim);
+  max-width: 62ch;
+}
+
+.muted {
+  color: var(--color-ash);
+}
+
+/* ------------------------------------------------------------------ *
+ * Heat encoding
+ * ------------------------------------------------------------------ */
+
+/* A filled bar whose width is the factor's real contribution. */
+.bar {
+  height: 10px;
+  background: var(--color-iron-800);
+  border: 1px solid var(--rule);
+  overflow: hidden;
+}
+
+.bar > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.readout {
+  font-family: var(--font-data);
+  font-size: clamp(2.6rem, 7vw, 4.6rem);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.tag {
+  font-family: var(--font-data);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border: 1px solid var(--rule);
+  color: var(--color-ash);
+  white-space: nowrap;
+}
+
+.tag-live {
+  border-color: color-mix(in oklab, var(--color-verified), transparent 40%);
+  color: var(--color-verified);
+}
+
+.tag-fault {
+  border-color: color-mix(in oklab, var(--color-fault), transparent 40%);
+  color: var(--color-fault);
+}
+
+/* ------------------------------------------------------------------ *
+ * Controls
+ * ------------------------------------------------------------------ */
+
+.btn {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 15px;
+  padding: 12px 20px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--color-bone);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background-color 140ms ease, color 140ms ease, transform 90ms ease;
+  min-height: 44px;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--color-ground);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--color-ground);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-bone);
+  border-color: var(--color-bone);
+}
+
+.btn-ghost {
+  border-color: var(--color-iron-600);
+  color: var(--color-bone-dim);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--color-iron-800);
+  color: var(--color-bone);
+  border-color: var(--accent);
+}
+
+.field {
+  width: 100%;
+  background: var(--color-iron-950);
+  border: 1px solid var(--color-iron-600);
+  color: var(--color-bone);
+  padding: 11px 12px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  border-radius: 2px;
+}
+
+.field::placeholder {
+  color: var(--color-smoke);
+}
+
+.field:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+
+textarea.field {
+  font-family: var(--font-data);
+  font-size: 13px;
+  line-height: 1.6;
+  resize: vertical;
+  min-height: 120px;
+}
+
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-verified);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Footer
+ * ------------------------------------------------------------------ */
+
+.footer {
+  border-top: 1px solid var(--rule);
+  margin-top: clamp(40px, 8vw, 90px);
+  padding: clamp(28px, 5vw, 48px) 0 clamp(28px, 5vw, 48px);
+}
+
+.foot-grid {
+  display: grid;
+  gap: 28px;
+  grid-template-columns: minmax(0, 1.4fr) repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.foot-link {
+  display: block;
+  font-family: var(--font-data);
+  font-size: 12px;
+  color: var(--color-ash);
+  text-decoration: none;
+  padding: 4px 0;
+}
+
+.foot-link:hover {
+  color: var(--accent);
+}
+
+/* ------------------------------------------------------------------ *
+ * Signature control: the heat dial
+ * ------------------------------------------------------------------ */
+
+.dial {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 40px;
+  background: transparent;
+  cursor: grab;
+}
+
+.dial:active {
+  cursor: grabbing;
+}
+
+.dial::-webkit-slider-runnable-track {
+  height: 12px;
+  /* The track is the temperature ramp itself. */
+  background: linear-gradient(
+    90deg,
+    var(--color-t0),
+    var(--color-t1) 28%,
+    var(--color-t2) 52%,
+    var(--color-t3) 76%,
+    var(--color-t4)
+  );
+  border: 1px solid var(--rule);
+}
+
+.dial::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 30px;
+  margin-top: -10px;
+  background: var(--color-bone);
+  border: 1px solid var(--color-ground);
+  border-radius: 1px;
+}
+
+.dial::-moz-range-track {
+  height: 12px;
+  background: linear-gradient(
+    90deg,
+    var(--color-t0),
+    var(--color-t1) 28%,
+    var(--color-t2) 52%,
+    var(--color-t3) 76%,
+    var(--color-t4)
+  );
+  border: 1px solid var(--rule);
+}
+
+.dial::-moz-range-thumb {
+  width: 16px;
+  height: 28px;
+  background: var(--color-bone);
+  border: 1px solid var(--color-ground);
+  border-radius: 1px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Tables, tape, misc
+ * ------------------------------------------------------------------ */
+
+.rows {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.rows th {
+  text-align: left;
+  font-family: var(--font-data);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-ash);
+  font-weight: 400;
+  padding: 8px 12px 8px 0;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+.rows td {
+  padding: 11px 12px 11px 0;
+  border-bottom: 1px solid var(--color-iron-800);
+  vertical-align: top;
+}
+
+.rows tr:hover td {
+  background: color-mix(in oklab, var(--color-iron-900), transparent 40%);
+}
+
+/*
+ * Wide tables scroll inside their own container rather than widening the page.
+ * Without this the suite table pushed the document 205px past the viewport on a
+ * 390px phone, which is how a page ends up with a horizontal scrollbar.
+ */
+.scroll-x {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* The tape: assertion outcomes read as punched tape, one row per assertion. */
+.tape {
+  border-left: 2px solid var(--rule);
+  padding-left: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.tape-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: baseline;
+}
+
+.tick {
+  font-family: var(--font-data);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.tick-pass { color: var(--color-verified); }
+.tick-fail { color: var(--color-fault); }
+.tick-null { color: var(--color-ash); }
+
+pre.code {
+  font-family: var(--font-data);
+  font-size: 12.5px;
+  line-height: 1.65;
+  background: var(--color-iron-950);
+  border: 1px solid var(--color-iron-700);
+  padding: 14px;
+  overflow-x: auto;
+  border-radius: 2px;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.notice {
+  border-left: 2px solid var(--accent);
+  padding: 10px 0 10px 14px;
+  font-size: 14px;
+  color: var(--color-bone-dim);
+}
+
+.notice-fault {
+  border-left-color: var(--color-fault);
+}
+
+.stack {
+  display: grid;
+  gap: 14px;
+}
+
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.split {
+  display: grid;
+  gap: clamp(20px, 3vw, 40px);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+/*
+ * Grid and flex children default to `min-width: auto`, which means they refuse
+ * to shrink below their content. A wide table inside a grid track therefore
+ * pushes the whole document past the viewport even when its own container is
+ * set to scroll. Every track child opts out so the scroll container wins.
+ *
+ * `.stack` matters as much as `.split`: it is a grid too, and it is what wraps
+ * most of the page content.
+ */
+.split > *,
+.stack > *,
+.foot-grid > *,
+.stage > * {
+  min-width: 0;
+}
+
+.cluster > * {
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------------ *
+ * Mobile: the rail becomes a bottom bar. Structure survives.
+ * ------------------------------------------------------------------ */
+
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /*
+   * The rail is the first child of the grid, so on a single-column layout it
+   * would render above the content and `bottom: 0` would do nothing. Ordering
+   * it after the column is what actually turns it into a bottom bar.
+   */
+  .column {
+    order: 1;
+    min-width: 0;
+  }
+
+  .rail {
+    order: 2;
+    position: sticky;
+    top: auto;
+    bottom: 0;
+    height: auto;
+    width: 100%;
+    flex-direction: row;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    border-right: 0;
+    border-top: 1px solid var(--rule);
+    padding: 6px 8px;
+    gap: 2px;
+    z-index: 20;
+    background: color-mix(in oklab, var(--color-iron-950), transparent 4%);
+  }
+
+  .rail-mark {
+    writing-mode: horizontal-tb;
+    font-size: 11px;
+    padding: 10px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+  }
+
+  .rail-brand {
+    writing-mode: horizontal-tb;
+  }
+
+  /* Tables get a floor width and scroll; they must not compress to unreadable. */
+  .scroll-x > .rows {
+    min-width: 560px;
+  }
+
+  .rows {
+    font-size: 13px;
+  }
+
+  .rows th,
+  .rows td {
+    padding: 9px 10px 9px 0;
+  }
+
+  /* Keep the last stage clear of the bottom bar. */
+  .pour {
+    padding-bottom: 12px;
+  }
+}
+
+@media (min-width: 901px) {
+  .rail-brand {
+    writing-mode: vertical-rl;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Motion
+ * ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

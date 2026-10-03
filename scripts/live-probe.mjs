@@ -1,0 +1,10 @@
+﻿import { hubLineup, arxivFeed, ARXIV_QUERY, lookupModel } from "../src/lib/live/index.ts";
+const hub = await hubLineup(["Qwen/Qwen2.5-72B-Instruct", "google/gemini-2.5-flash", "meta-llama/Llama-3.1-70B-Instruct"]);
+console.log("HUB status=" + hub.status + " items=" + hub.items.length);
+console.log("HUB degraded=" + (hub.degradedReason ?? "none"));
+for (const i of hub.items) console.log("  " + i.modelId + " gated=" + i.gated + " rev=" + String(i.revision).slice(0,12) + " dl=" + i.downloads);
+const closed = await lookupModel("google/gemini-2.5-flash");
+console.log("CLOSED found=" + closed.found + " source=" + closed.source);
+const ax = await arxivFeed(ARXIV_QUERY, 4);
+console.log("ARXIV status=" + ax.status + " items=" + ax.items.length);
+for (const p of ax.items) console.log("  " + p.id + " | " + p.title.slice(0,70) + " | models=" + p.mentionedModels.join(","));

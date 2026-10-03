@@ -1,0 +1,32 @@
+---
+name: Bug or gap
+about: Something behaves wrongly, or a claim is not supported by evidence
+title: "[bug] "
+labels: bug
+---
+
+## What happened
+
+<!-- What you did, what you expected, what actually happened. -->
+
+## Where
+
+- Route or tool: `<!-- e.g. /task/[id], or the grade_task MCP tool -->`
+- Engine version: `<!-- crucible-grade-v1.0.0 -->`
+
+## Steps to reproduce
+
+1.
+2.
+3.
+
+## Why it matters
+
+<!-- If this is a grading problem, say whether a score is wrong, or right but
+     unsupported by the evidence shown. The second kind matters most: it means a
+     reader could believe something the app cannot actually justify. -->
+
+## Environment
+
+- Deployed or local:
+- Browser, if relevant:
