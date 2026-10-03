@@ -12,7 +12,7 @@
 [![TypeScript strict](https://img.shields.io/badge/TypeScript-strict-94a3b8?style=flat-square&labelColor=0a0908)](tsconfig.json)
 [![Live feeds](https://img.shields.io/badge/feeds-Hugging%20Face%20%2B%20arXiv-22d3ee?style=flat-square&labelColor=0a0908)](https://crucible-aniruddha-adaks-projects.vercel.app/lineup)
 
-**[Live app](https://crucible-aniruddha-adaks-projects.vercel.app)** · **[GitHub](https://github.com/aniruddhaadak80/crucible)** · **[API](https://crucible-aniruddha-adaks-projects.vercel.app/api/health)** · **[Agent](https://crucible-aniruddha-adaks-projects.vercel.app/agent)** · **[Issues](https://github.com/aniruddhaadak80/crucible/issues)**
+**[Live app](https://crucible-aniruddha-adaks-projects.vercel.app)** · **[GitHub](https://github.com/aniruddhaadak80/crucible)** · **[Write-up](https://dev.to/aniruddhaadak/i-built-a-tool-that-grades-the-benchmark-instead-of-the-model-aj0)** · **[API](https://crucible-aniruddha-adaks-projects.vercel.app/api/health)** · **[Agent](https://crucible-aniruddha-adaks-projects.vercel.app/agent)** · **[Issues](https://github.com/aniruddhaadak80/crucible/issues)**
 
 </div>
 
@@ -93,6 +93,7 @@ no configuration.
 | `npm run build` | Production build |
 | `npm run verify:db` | Exercises the real store: schema, seed, CRUD, audit, replay, tamper detection |
 | `npm run verify:bundle` | Generates a Kaggle bundle and proves the Python grader matches the engine |
+| `npm run audit:secrets` | Scans tracked files and the built client bundle for credentials; fails on a real one |
 | `npm run journey` | Boots the app and walks the whole HTTP journey |
 | `npm run browser` | Real Chromium pass on desktop and mobile |
 | `npm run verify:live` | Full proof against a deployed URL |

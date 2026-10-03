@@ -14,7 +14,9 @@
     "browser": "node scripts/browser.mjs",
     "verify:db": "node scripts/db-smoke.mjs",
     "verify:bundle": "node scripts/bundle-check.mjs",
-    "gate": "npm run typecheck && npm run lint && npm run test && npm run build && npm run verify:db && npm run verify:bundle"
+    "audit:secrets": "node scripts/security-audit.mjs",
+    "publish:blog": "node scripts/publish-blog.mjs",
+    "gate": "npm run typecheck && npm run lint && npm run test && npm run build && npm run audit:secrets && npm run verify:db && npm run verify:bundle"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.8",
