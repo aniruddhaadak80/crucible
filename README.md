@@ -4,15 +4,15 @@
 
 ### Turn a real model failure into a deterministic, publishable benchmark task.
 
-[![Live app](https://img.shields.io/badge/live-verified-34d399?style=flat-square&labelColor=0a0908)](https://crucible-cwhs1gr1j-aniruddha-adaks-projects.vercel.app)
-[![Engine](https://img.shields.io/badge/engine-crucible--grade--v1.0.0-a78bfa?style=flat-square&labelColor=0a0908)](https://crucible-cwhs1gr1j-aniruddha-adaks-projects.vercel.app/settings)
-[![Agent tools](https://img.shields.io/badge/MCP-11%20tools-22d3ee?style=flat-square&labelColor=0a0908)](https://crucible-cwhs1gr1j-aniruddha-adaks-projects.vercel.app/agent)
+[![Live app](https://img.shields.io/badge/live-verified-34d399?style=flat-square&labelColor=0a0908)](https://crucible-aniruddha-adaks-projects.vercel.app)
+[![Engine](https://img.shields.io/badge/engine-crucible--grade--v1.0.0-a78bfa?style=flat-square&labelColor=0a0908)](https://crucible-aniruddha-adaks-projects.vercel.app/settings)
+[![Agent tools](https://img.shields.io/badge/MCP-11%20tools-22d3ee?style=flat-square&labelColor=0a0908)](https://crucible-aniruddha-adaks-projects.vercel.app/agent)
 [![License MIT](https://img.shields.io/badge/license-MIT-fbbf24?style=flat-square&labelColor=0a0908)](LICENSE)
 [![Next.js 16](https://img.shields.io/badge/Next.js-16-94a3b8?style=flat-square&labelColor=0a0908)](https://nextjs.org)
 [![TypeScript strict](https://img.shields.io/badge/TypeScript-strict-94a3b8?style=flat-square&labelColor=0a0908)](tsconfig.json)
-[![Live feeds](https://img.shields.io/badge/feeds-Hugging%20Face%20%2B%20arXiv-22d3ee?style=flat-square&labelColor=0a0908)](https://crucible-cwhs1gr1j-aniruddha-adaks-projects.vercel.app/lineup)
+[![Live feeds](https://img.shields.io/badge/feeds-Hugging%20Face%20%2B%20arXiv-22d3ee?style=flat-square&labelColor=0a0908)](https://crucible-aniruddha-adaks-projects.vercel.app/lineup)
 
-**[Live app](https://crucible-cwhs1gr1j-aniruddha-adaks-projects.vercel.app)** · **[GitHub](https://github.com/aniruddhaadak80/crucible)** · **[API](https://crucible-cwhs1gr1j-aniruddha-adaks-projects.vercel.app/api/health)** · **[Agent](https://crucible-cwhs1gr1j-aniruddha-adaks-projects.vercel.app/agent)** · **[Issues](https://github.com/aniruddhaadak80/crucible/issues)**
+**[Live app](https://crucible-aniruddha-adaks-projects.vercel.app)** · **[GitHub](https://github.com/aniruddhaadak80/crucible)** · **[API](https://crucible-aniruddha-adaks-projects.vercel.app/api/health)** · **[Agent](https://crucible-aniruddha-adaks-projects.vercel.app/agent)** · **[Issues](https://github.com/aniruddhaadak80/crucible/issues)**
 
 </div>
 
@@ -300,7 +300,7 @@ reads return `404`, indistinguishable from not-found.
 ### Health
 
 ```bash
-curl -s https://crucible-cwhs1gr1j-aniruddha-adaks-projects.vercel.app/api/health | jq
+curl -s https://crucible-aniruddha-adaks-projects.vercel.app/api/health | jq
 ```
 
 ```json
@@ -319,7 +319,7 @@ is unhealthy.
 
 ```bash
 # Create
-curl -sX POST https://crucible-cwhs1gr1j-aniruddha-adaks-projects.vercel.app/api/tasks \
+curl -sX POST https://crucible-aniruddha-adaks-projects.vercel.app/api/tasks \
   -H 'content-type: application/json' \
   -d '{
     "name": "Unit-of-measure drift",
@@ -338,33 +338,33 @@ curl -sX POST https://crucible-cwhs1gr1j-aniruddha-adaks-projects.vercel.app/api
   }' | jq '.verdict.score, .verdict.factors[0]'
 
 # Read back
-curl -s https://crucible-cwhs1gr1j-aniruddha-adaks-projects.vercel.app/api/tasks/<id> | jq '.task.name, .grade.grades[0].outcomes'
+curl -s https://crucible-aniruddha-adaks-projects.vercel.app/api/tasks/<id> | jq '.task.name, .grade.grades[0].outcomes'
 
 # Update
-curl -sX PATCH https://crucible-cwhs1gr1j-aniruddha-adaks-projects.vercel.app/api/tasks/<id> \
+curl -sX PATCH https://crucible-aniruddha-adaks-projects.vercel.app/api/tasks/<id> \
   -H 'content-type: application/json' -d '{"name":"Unit-of-measure drift (v2)"}' | jq '.task.name'
 
 # Delete — soft, and the tombstone keeps the chain replayable
-curl -sX DELETE https://crucible-cwhs1gr1j-aniruddha-adaks-projects.vercel.app/api/tasks/<id> | jq '.retired, .integrity.ok'
+curl -sX DELETE https://crucible-aniruddha-adaks-projects.vercel.app/api/tasks/<id> | jq '.retired, .integrity.ok'
 ```
 
 ### Run the engine
 
 ```bash
-curl -sX POST https://crucible-cwhs1gr1j-aniruddha-adaks-projects.vercel.app/api/tasks/<id>/grade | jq '{score:.verdict.score, band:.verdict.band.id, seal:.seal}'
+curl -sX POST https://crucible-aniruddha-adaks-projects.vercel.app/api/tasks/<id>/grade | jq '{score:.verdict.score, band:.verdict.band.id, seal:.seal}'
 ```
 
 ### Verify integrity
 
 ```bash
-curl -s https://crucible-cwhs1gr1j-aniruddha-adaks-projects.vercel.app/api/tasks/<id>/integrity | jq '.integrity'
+curl -s https://crucible-aniruddha-adaks-projects.vercel.app/api/tasks/<id>/integrity | jq '.integrity'
 ```
 
 ### Export
 
 ```bash
-curl -s "https://crucible-cwhs1gr1j-aniruddha-adaks-projects.vercel.app/api/tasks/<id>/dossier?format=markdown" -o crucible-task.md
-curl -s https://crucible-cwhs1gr1j-aniruddha-adaks-projects.vercel.app/api/tasks/<id>/bundle | jq '.files[].path'
+curl -s "https://crucible-aniruddha-adaks-projects.vercel.app/api/tasks/<id>/dossier?format=markdown" -o crucible-task.md
+curl -s https://crucible-aniruddha-adaks-projects.vercel.app/api/tasks/<id>/bundle | jq '.files[].path'
 ```
 
 ### Errors
@@ -383,11 +383,11 @@ validation · `429` rate limited · `503` store unavailable
 
 ## 🔌 Agent interface
 
-JSON-RPC 2.0 over HTTP POST at `https://crucible-cwhs1gr1j-aniruddha-adaks-projects.vercel.app/api/mcp`.
-Manifest: [`/mcp.json`](https://crucible-cwhs1gr1j-aniruddha-adaks-projects.vercel.app/mcp.json).
+JSON-RPC 2.0 over HTTP POST at `https://crucible-aniruddha-adaks-projects.vercel.app/api/mcp`.
+Manifest: [`/mcp.json`](https://crucible-aniruddha-adaks-projects.vercel.app/mcp.json).
 
 ```bash
-curl -sX POST https://crucible-cwhs1gr1j-aniruddha-adaks-projects.vercel.app/api/mcp \
+curl -sX POST https://crucible-aniruddha-adaks-projects.vercel.app/api/mcp \
   -H 'content-type: application/json' \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | jq '.result.tools[].name'
 ```
@@ -410,7 +410,7 @@ Retrying a mutating call with the same `idempotencyKey` returns the original
 result and performs **no second mutation**:
 
 ```bash
-curl -sX POST https://crucible-cwhs1gr1j-aniruddha-adaks-projects.vercel.app/api/mcp -H 'content-type: application/json' -d '{
+curl -sX POST https://crucible-aniruddha-adaks-projects.vercel.app/api/mcp -H 'content-type: application/json' -d '{
   "jsonrpc":"2.0","id":2,"method":"tools/call","params":{
     "name":"forge_task",
     "arguments":{
@@ -426,7 +426,7 @@ Point any MCP client at it:
 ```json
 {
   "mcpServers": {
-    "crucible": { "type": "http", "url": "https://crucible-cwhs1gr1j-aniruddha-adaks-projects.vercel.app/api/mcp" }
+    "crucible": { "type": "http", "url": "https://crucible-aniruddha-adaks-projects.vercel.app/api/mcp" }
   }
 }
 ```

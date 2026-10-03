@@ -30,7 +30,7 @@ export const GITHUB_API_TREE = `${GITHUB_URL}/tree/main`;
  */
 export const LIVE_URL = trimSlash(
   process.env.NEXT_PUBLIC_SITE_URL ??
-    "https://crucible-cwhs1gr1j-aniruddha-adaks-projects.vercel.app",
+    "https://crucible-aniruddha-adaks-projects.vercel.app",
 );
 
 export const SITE = {
