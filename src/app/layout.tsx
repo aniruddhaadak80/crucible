@@ -1,4 +1,8 @@
 import type { Metadata, Viewport } from "next";
+import type { ReactNode } from "react";
+
+type LayoutProps = { children: ReactNode };
+
 import localFont from "next/font/local";
 
 import { Footer } from "@/components/Footer";
