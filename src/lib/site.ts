@@ -125,3 +125,22 @@ export const FOOTER_LINKS = [
 export function absoluteUrl(path = "/"): string {
   return `${LIVE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
+
+/**
+ * Resolve the public origin for a specific request.
+ *
+ * A manifest that advertises an absolute URL has to be right, and baking it at
+ * build time makes it wrong the moment an alias changes — the first version of
+ * /mcp.json pointed at `crucible.vercel.app`, which belongs to an unrelated
+ * project. Deriving it from the request that is being served means the manifest
+ * can only ever name the host the caller actually reached.
+ */
+export function originFor(request: Request): string {
+  const url = new URL(request.url);
+  // A forwarded host is the public one behind the platform proxy.
+  const forwarded = request.headers.get("x-forwarded-host");
+  const host = forwarded?.split(",")[0]?.trim() || url.host;
+  const proto =
+    request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() || url.protocol.replace(":", "");
+  return `${proto}://${host}`;
+}
