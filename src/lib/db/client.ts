@@ -5,6 +5,8 @@
  *
  *  - `neon-postgres`  production. A real hosted Postgres that survives
  *                     redeploys and cold starts. Requires DATABASE_URL.
+ *  - `tcp-postgres`   any other hosted Postgres, over the standard Postgres
+ *                     wire protocol. Requires DATABASE_URL.
  *  - `pglite`         local development and the test suite. A real Postgres
  *                     compiled to WASM, stored under ./.crucible. Zero
  *                     environment variables, no install step.
@@ -17,7 +19,7 @@
 import { neon } from "@neondatabase/serverless";
 import { SCHEMA_SQL } from "./schema.ts";
 
-export type DbKind = "neon-postgres" | "pglite";
+export type DbKind = "neon-postgres" | "tcp-postgres" | "pglite";
 
 export interface QueryResult<T> {
   rows: T[];
@@ -85,6 +87,44 @@ function createNeon(url: string): Db {
 }
 
 /* ------------------------------------------------------------------ *
+ * Plain Postgres over TCP
+ * ------------------------------------------------------------------ */
+
+/**
+ * Neon hostnames, which are the only ones the HTTP driver can serve.
+ *
+ * The Neon serverless client speaks HTTP, so it can only reach Neon's own
+ * edge. Pointed at any other Postgres -- a container, a VPS, a CI service --
+ * it fails with an opaque `TypeError: fetch failed`, because it is issuing an
+ * HTTPS request to a TCP port. Those need the wire protocol instead.
+ */
+export function isNeonHost(url: string): boolean {
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return host.endsWith(".neon.tech") || host.endsWith(".neon.build");
+  } catch {
+    return false;
+  }
+}
+
+async function createTcpPostgres(url: string): Promise<Db> {
+  // Imported lazily, matching the PGlite adapter: the edge bundle must not pay
+  // for a TCP stack it will never use on the Neon path.
+  const { Client } = await import("pg");
+  const client = new Client({ connectionString: url });
+  let opening: Promise<unknown> | null = null;
+  const connect = () => (opening ??= client.connect());
+  return {
+    kind: "tcp-postgres",
+    async query<T>(text: string, params: unknown[] = []) {
+      await connect();
+      const result = await client.query(text, params as never[]);
+      return { rows: result.rows as T[] };
+    },
+  };
+}
+
+/* ------------------------------------------------------------------ *
  * PGlite
  * ------------------------------------------------------------------ */
 
@@ -146,12 +186,14 @@ export function getDb(): Promise<Db> {
     if (isProduction() && !isAcceptableProductionUrl(url)) {
       cache.__crucibleDb = Promise.reject(
         new Error(
-          "DATABASE_URL does not point at a hosted Postgres. Set a neon/Supabase connection string for production deployments.",
+          "DATABASE_URL does not point at a hosted Postgres. Set a connection string for your hosted store (Neon, Supabase, RDS, or any reachable Postgres) for production deployments.",
         ),
       );
       return cache.__crucibleDb;
     }
-    cache.__crucibleDb = Promise.resolve(createNeon(url));
+    cache.__crucibleDb = isNeonHost(url)
+      ? Promise.resolve(createNeon(url))
+      : createTcpPostgres(url);
     return cache.__crucibleDb;
   }
 
@@ -206,8 +248,10 @@ export async function ready(): Promise<Db> {
  * not return a static object, so this performs a real round trip.
  */
 export async function ping(): Promise<{ ok: boolean; kind: DbKind; detail: string }> {
+  let kind: DbKind = "pglite";
   try {
     const db = await ready();
+    kind = db.kind;
     const result = await db.query<{ ok: number }>("SELECT 1 AS ok");
     const value = Number(result.rows[0]?.ok ?? 0);
     return {
@@ -216,9 +260,12 @@ export async function ping(): Promise<{ ok: boolean; kind: DbKind; detail: strin
       detail: `SELECT 1 returned ${value}`,
     };
   } catch (error) {
+    // Report the adapter we actually attempted. Hardcoding a kind here made a
+    // failed TCP connection look like a Neon fault, which sent the CI
+    // diagnosis after the wrong subsystem entirely.
     return {
       ok: false,
-      kind: "neon-postgres",
+      kind,
       detail: error instanceof Error ? error.message : "unknown database failure",
     };
   }
@@ -234,11 +281,14 @@ export function describeAdapter(): {
   const url = process.env.DATABASE_URL?.trim();
   const production = isProduction();
   if (url && (production ? isAcceptableProductionUrl(url) : true)) {
+    const neon = isNeonHost(url);
     return {
-      kind: "neon-postgres",
+      kind: neon ? "neon-postgres" : "tcp-postgres",
       production,
       durable: true,
-      note: "Hosted Postgres. Rows survive redeploys and cold starts.",
+      note: neon
+        ? "Neon over HTTP. Rows survive redeploys and cold starts."
+        : "Hosted Postgres over TCP. Rows survive redeploys and cold starts.",
     };
   }
   return {
