@@ -225,6 +225,16 @@ export async function listTasks(scope: string, options: ListOptions): Promise<Li
     params.push(options.status);
     where.push(`status = $${params.length}`);
   }
+
+  // `total` is the size of the whole matching set, so the cursor must not
+  // narrow it: the cursor paginates, it does not filter. The count therefore
+  // gets its own clause and its own parameter list, captured before the
+  // cursor is pushed onto `params`. Reusing the page clause here while
+  // dropping the cursor parameter left the count query one bind short of what
+  // its WHERE clause referenced, and every cursored listing failed.
+  const countClause = where.join(" AND ");
+  const countParams = [...params];
+
   if (options.before) {
     params.push(options.before);
     where.push(`created_at < $${params.length}::timestamptz`);
@@ -241,8 +251,8 @@ export async function listTasks(scope: string, options: ListOptions): Promise<Li
   const last = page[page.length - 1];
 
   const countRows = await db.query<{ n: number }>(
-    `SELECT count(*)::int AS n FROM tasks WHERE ${clause}`,
-    params.slice(0, options.before ? params.length - 1 : params.length),
+    `SELECT count(*)::int AS n FROM tasks WHERE ${countClause}`,
+    countParams,
   );
 
   return {
