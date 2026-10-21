@@ -262,7 +262,11 @@ export function parseTaskInput(raw: unknown, mode: "create" | "update"): Benchma
         const a = validateAssertion(item, i, out);
         if (a) parsed.push(a);
       });
-      if (parsed.length > 0) input.assertions = parsed;
+      // An explicitly supplied empty array is an instruction to clear the
+      // assertions, not an absent field. Dropping it made a PATCH of
+      // `{"assertions": []}` a silent no-op that still reported success,
+      // while `transcripts` and `sealedFixtures` were applied as sent.
+      input.assertions = parsed;
     }
   }
 
