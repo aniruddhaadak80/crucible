@@ -128,6 +128,33 @@ async function main() {
   const settings = await repo.getSettings(owner);
   check("settings round trip", settings?.heatDial === 0.4);
 
+  console.log("\ncursor pagination");
+  const pager = "c".repeat(32);
+  for (const name of ["Page one", "Page two", "Page three"]) {
+    await repo.createTask(
+      pager,
+      { name, failureMode: "f", prompt: "p", assertions: [], transcripts: [] },
+      "ui:smoke",
+    );
+    // The cursor is a millisecond-resolution timestamp, so two tasks created
+    // in the same millisecond would share a cursor value. Space them out so
+    // this section exercises pagination and not the timestamp resolution.
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+  const firstPage = await repo.listTasks(pager, { limit: 1 });
+  check("first page holds one task", firstPage.tasks.length === 1, `${firstPage.tasks.length}`);
+  check("first page reports a cursor", typeof firstPage.nextBefore === "string");
+  check("total counts every task in the scope", firstPage.total === 3, `total ${firstPage.total}`);
+  // A cursored listing used to bind one parameter too few for its own WHERE
+  // clause and threw, so the second page was unreachable.
+  const secondPage = await repo.listTasks(pager, { limit: 1, before: firstPage.nextBefore });
+  check("the cursor page is readable", secondPage.tasks.length === 1, `${secondPage.tasks.length}`);
+  check(
+    "the cursor page is a different task",
+    secondPage.tasks[0]?.id !== firstPage.tasks[0]?.id,
+  );
+  check("the cursor does not narrow the total", secondPage.total === 3, `total ${secondPage.total}`);
+
   console.log("\nretire + tombstone + replay");
   await repo.retireTask(owner, created.id, "ui:smoke");
   const live = await repo.listTasks(owner, { limit: 10 });
